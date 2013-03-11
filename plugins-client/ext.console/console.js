@@ -699,7 +699,7 @@ module.exports = ext.register("ext/console/console", {
             }), 800)
         );
 
-        menus.addItemByPath("Tools/~", new apf.divider(), 30000);
+/*        menus.addItemByPath("Tools/~", new apf.divider(), 30000);
 
         var cmd = {
             "Git" : [
@@ -744,7 +744,7 @@ module.exports = ext.register("ext/console/console", {
                         }
                     }), idx2 += 100);
             });
-        });
+        });*/ // [webshell]
 
         ide.addEventListener("settings.load", function(e){
             settings.setDefaults("auto/console", [
@@ -946,7 +946,7 @@ module.exports = ext.register("ext/console/console", {
             }
         };
 
-        ide.send(data);
+        //ide.send(data); // [webshell]
     },
 
     /**

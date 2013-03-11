@@ -132,7 +132,7 @@ module.exports = ext.register("ext/dockpanel/dockpanel", {
         ide.addEventListener("menus.restore", _self.updateParentHboxTop);        
         ide.addEventListener("menus.minimize", _self.updateParentHboxTop);
 
-        this.nodes.push(
+        /*this.nodes.push(
             menus.addItemByPath("View/Dock Panels/", null, 150),
 
             menus.addItemByPath("View/Dock Panels/Restore Default", new apf.item({
@@ -158,7 +158,7 @@ module.exports = ext.register("ext/dockpanel/dockpanel", {
             }), 100),
 
             menus.addItemByPath("View/Dock Panels/~", new apf.divider(), 200)
-        );
+        );*/
     },
 
     updateParentHboxTop : function() {

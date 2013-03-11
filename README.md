@@ -1,3 +1,13 @@
+# Cloud9 IDE adapted for Webshell
+
+This project aims to edit and run [Webshell scripts](http://webshell.io) from the famous [Cloud9 IDE](http://c9.io).
+
+This version is a fork from the [Cloud9 IDE repository](https://github.com/ajaxorg/cloud9) and contains modifications to be adapted for Webshell.
+
+The notice below is a copy from the original.
+
+--
+
 **Issues on c9.io** If you have questions regarding the hosted service at [c9.io](http://c9.io)
 including issues with accounts or payments,
 please file them at [support.c9.io](http://support.cloud9ide.com/home) rather than as a

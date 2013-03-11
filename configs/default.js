@@ -91,9 +91,9 @@ var config = [
             "ext/newresource/newresource",
             "ext/undo/undo",
             "ext/clipboard/clipboard",
-            "ext/searchinfiles/searchinfiles",
+            // "ext/searchinfiles/searchinfiles",
             "ext/searchreplace/searchreplace",
-            "ext/quickwatch/quickwatch",
+            // "ext/quickwatch/quickwatch",
             "ext/gotoline/gotoline",
             "ext/preview/preview",
             "ext/log/log",
@@ -105,12 +105,12 @@ var config = [
             "ext/code/code",
             "ext/statusbar/statusbar",
             "ext/imgview/imgview",
-            //"ext/preview/preview",
-            "ext/extmgr/extmgr",
+            // "ext/preview/preview",
+            // "ext/extmgr/extmgr",
             //"ext/run/run", //Add location rule
             "ext/runpanel/runpanel", //Add location rule
-            "ext/debugger/debugger", //Add location rule
-            "ext/dbg-node/dbg-node",
+            // "ext/debugger/debugger", //Add location rule
+            // "ext/dbg-node/dbg-node",
             "ext/noderunner/noderunner", //Add location rule
             "ext/console/console",
             "ext/consolehints/consolehints",
@@ -118,7 +118,7 @@ var config = [
             "ext/tabsessions/tabsessions",
             //"ext/keybindings/keybindings",
             "ext/keybindings_default/keybindings_default",
-            "ext/watcher/watcher",
+            // "ext/watcher/watcher",
             "ext/dragdrop/dragdrop",
             "ext/menus/menus",
             "ext/tooltip/tooltip",
@@ -142,11 +142,11 @@ var config = [
             "ext/closeconfirmation/closeconfirmation",
             "ext/codetools/codetools",
             "ext/colorpicker/colorpicker",
-            "ext/gitblame/gitblame",
+            // "ext/gitblame/gitblame",
             //"ext/githistory/githistory",
             "ext/autosave/autosave",
             "ext/revisions/revisions",
-            "ext/language/liveinspect",
+            // "ext/language/liveinspect",
             "ext/splitview/splitview"
             //"ext/minimap/minimap"
         ]
@@ -188,40 +188,40 @@ var config = [
         packagePath: "./cloud9.run.node-debug",
         listenHint: "Important: in your scripts, use 'process.env.PORT' as port and '0.0.0.0' as host."
     },
-    "./cloud9.run.npm",
-    "./cloud9.run.npmnode",
-    "./cloud9.run.ruby",
-    "./cloud9.run.python",
-    "./cloud9.run.apache",
-    "./cloud9.run.php",
-    "./cloud9.run.other",
+    // "./cloud9.run.npm",
+    // "./cloud9.run.npmnode",
+    // "./cloud9.run.ruby",
+    // "./cloud9.run.python",
+    // "./cloud9.run.apache",
+    // "./cloud9.run.php",
+    // "./cloud9.run.other",
     "architect/plugins/architect.log",
     "./cloud9.ide.auth",
-    "./cloud9.ide.git",
-    "./cloud9.ide.gittools",
-    "./cloud9.ide.hg",
-    "./cloud9.ide.npm",
+    // "./cloud9.ide.git",
+    // "./cloud9.ide.gittools",
+    // "./cloud9.ide.hg",
+    // "./cloud9.ide.npm",
     "./cloud9.ide.filelist",
     "./cloud9.ide.search",
-    "./cloud9.ide.run-node",
-    {
-        packagePath: "./cloud9.ide.run-npm-module",
-        allowShell: true
-    },
-    "./cloud9.ide.run-python",
-    "./cloud9.ide.run-apache",
-    "./cloud9.ide.run-ruby",
-    "./cloud9.ide.run-php",
-    "./cloud9.ide.run-other",
-    "./cloud9.run.python",
+    //"./cloud9.ide.run-node",
+    // {
+    //     packagePath: "./cloud9.ide.run-npm-module",
+    //     allowShell: true
+    // },
+    // "./cloud9.ide.run-python",
+    // "./cloud9.ide.run-apache",
+    // "./cloud9.ide.run-ruby",
+    // "./cloud9.ide.run-php",
+    // "./cloud9.ide.run-other",
+    // "./cloud9.run.python",
     "./cloud9.ide.revisions",
     {
         packagePath: "./cloud9.ide.settings",
         settingsPath: ".settings"
     },
-    "./cloud9.ide.shell",
+    // "./cloud9.ide.shell",
     "./cloud9.ide.state",
-    "./cloud9.ide.watcher",
+    // "./cloud9.ide.watcher",
 ];
 
 if (useAuth) {

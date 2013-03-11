@@ -120,7 +120,7 @@ module.exports = ext.register("ext/debugger/debugger", {
             return false;
         });
 
-        var name = "ext/debugger/debugger"; //this.name
+        /*var name = "ext/debugger/debugger"; //this.name
 
         dock.addDockable({
             expanded : -1,
@@ -221,7 +221,7 @@ module.exports = ext.register("ext/debugger/debugger", {
             });
 
             return dbgVariable;
-        });
+        });*/
 
         function onAttach(debugHandler, pid, runner) {
             if (!_self.inited)

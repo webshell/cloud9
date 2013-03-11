@@ -74,7 +74,7 @@ module.exports = {
         }
 
         // register dock panel
-        var name =  "ext/debugger/debugger";
+        /*var name =  "ext/debugger/debugger";
         dock.register(name, "dbgBreakpoints", {
             menu : "Debugger/Breakpoints",
             primary : {
@@ -85,7 +85,7 @@ module.exports = {
         }, function(type) {
             ext.initExtension(dbg.main);
             return dbgBreakpoints;
-        });
+        });*/
 
         ide.addEventListener("afterfilesave", function(e) {
             var doc = e.doc;

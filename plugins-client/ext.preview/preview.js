@@ -60,7 +60,7 @@ module.exports = ext.register($name, {
 
         settings.addSettings("General", markupSettings);
 
-        this.nodes.push(
+        /*this.nodes.push(
             menus.$insertByIndex(barTools, new apf.button({
                 skin : "c9-toolbarbutton-glossy",
                 //icon : "preview.png",
@@ -95,7 +95,7 @@ module.exports = ext.register($name, {
                     hidden : false
                 }]
             }]
-        });
+        });*/
 
         dock.register(this.$name, this.$button, {
             menu : "Preview Apps",

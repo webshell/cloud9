@@ -60,7 +60,7 @@ module.exports = ext.register("ext/searchinfiles/searchinfiles", apf.extend({
 
         this.markupInsertionPoint = searchRow;
 
-        commands.addCommand({
+        /*commands.addCommand({
             name: "searchinfiles",
             hint: "search for a string through all files in the current workspace",
             bindKey: {mac: "Shift-Command-F", win: "Ctrl-Shift-F"},
@@ -74,7 +74,7 @@ module.exports = ext.register("ext/searchinfiles/searchinfiles", apf.extend({
             menus.addItemByPath("Find/Find in Files...", new apf.item({
                 command : "searchinfiles"
             }), 20000)
-        );
+        );*/
     },
 
     init : function(amlNode){

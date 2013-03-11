@@ -36,11 +36,11 @@ module.exports = ext.register("ext/extmgr/extmgr", {
         var _self = this;
 
         menus.addItemByPath("Tools/~", new apf.divider(), 1000000);
-        menus.addItemByPath("Tools/Extension Manager...", new apf.item({
+        /*menus.addItemByPath("Tools/Extension Manager...", new apf.item({
             onclick : function(){
                 _self.show();
             }
-        }), 2000000);
+        }), 2000000);*/
 
         // Load up extensions the user added manually
         ide.addEventListener("settings.load", function(e){
