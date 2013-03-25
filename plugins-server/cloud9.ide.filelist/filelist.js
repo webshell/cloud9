@@ -13,7 +13,6 @@ var Path = require("path");
 module.exports = function() {
     this.env = {
         findCmd: "find",
-        perlCmd: "perl",
         platform: Os.platform(),
         basePath: "",
         workspaceId: ""
@@ -46,36 +45,13 @@ module.exports = function() {
         if (!args)
             return onExit(1, "Invalid arguments");
 
-        vfs.spawn(args.command, { args: args, cwd: options.path, stdoutEncoding: "utf8", stderrEncoding: "utf8" }, function(err, meta) {
-            if (err || !meta.process)
+        vfs.spawn("return find(args)", { args: args }, function(err, data) {
+            if (err || ! Array.isArray(data))
                 return onExit(1, err);
 
-            var stderr = "", gotExitCode = false, gotClose = false;
-            meta.process.stdout.on("data", function(data) {
-                onData(data);
-            });
-
-            meta.process.stderr.on("data", function(data) {
-                stderr += data;
-            });
-
-            meta.process.on("exit", function(code) {
-                if (gotClose) {
-                    onExit(code, stderr);
-                }
-                else {
-                    gotExitCode = code;
-                }
-            });
-
-            meta.process.stdout.on("close", function(code) {
-                if (gotExitCode !== false) {
-                    onExit(gotExitCode, stderr);
-                }
-                else {
-                    gotClose = true;
-                }
-            });
+            for (var i in data)
+                onData("./" + Path.relative(options.path, data[i]) + "\n");
+            onExit(0);
         });
     };
 
@@ -92,30 +68,23 @@ module.exports = function() {
             "CVS", "RCS", "SCCS", "\\.DS_Store"
         ];
 
-        var args = ["-L", ".", "-type", "f", "-a"];
-
-        if (this.env.platform === "darwin")
-            args.unshift("-E");
+        var args = {path:options.path, exclude:[]};
 
         //Hidden Files
         if (!options.showHiddenFiles)
-            args.push("(", "!", "-regex", ".*/\\..*", ")");
+            args.exclude.push(".*/\\..*");
 
         if (options.maxdepth)
-            args.push("-maxdepth", options.maxdepth);
+            args.depth = options.maxdepth;
 
         excludeExtensions.forEach(function(pattern){
-            args.push("(", "!", "-regex", ".*\\/" + pattern + "$", ")");
+            args.exclude.push(".*\\/" + pattern + "$");
         });
 
         excludeDirectories.forEach(function(pattern){
-            args.push("(", "!", "-regex", ".*\\/" + pattern + "\\/.*", ")");
+            args.exclude.push(".*\\/" + pattern + "\\/.*");
         });
 
-        if (this.env.platform !== "darwin")
-            args.push("-regextype", "posix-extended", "-print");
-
-        args.command = this.env.findCmd;
         return args;
     };
 };
