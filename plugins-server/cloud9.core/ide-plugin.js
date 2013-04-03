@@ -35,18 +35,23 @@ module.exports = function setup(options, imports, register) {
         });
     });
 
-    function initUserAndProceed(uid, workspaceId, callback) {
+    function initUserAndProceed(uid, workspaceId, data, callback) {
+        if (typeof data == 'function') {
+            callback = data;
+            data = undefined;
+        }
         permissions.getPermissions(uid, workspaceId, "cloud9.core.ide-plugin", function(err, perm) {
             if (err) {
                 callback(err);
                 return;
             }
-            ide.addUser(uid, perm);
+            ide.addUser(uid, perm, data);
             callback(null, ide.$users[uid]);
         });
     }
 
     function init(projectDir, workspaceId, runnerTypes) {
+
         ide = new IdeServer({
             workspaceDir: projectDir,
             settingsPath: "",
@@ -84,7 +89,7 @@ module.exports = function setup(options, imports, register) {
         connect.useSession(connectModule.csrf());
 
         server.use(function(req, res, next) {
-            req.parsedUrl = parseUrl(req.url);
+            req.parsedUrl = parseUrl(req.url, true);
 
             if (!(req.session.uid || req.session.anonid))
                 return next(new error.Unauthorized());
@@ -92,7 +97,12 @@ module.exports = function setup(options, imports, register) {
 
             var pause = utils.pause(req);
 
-            initUserAndProceed(req.session.uid || req.session.anonid, ide.options.workspaceId, function(err) {
+            var userData = {
+                webshellCsid: req.parsedUrl.query['webshellCsid'] || req.session.userData['webshellCsid'],
+                workspaceDir: req.parsedUrl.query['path'] || req.session.userData['workspaceDir']
+            };
+
+            initUserAndProceed(req.session.uid || req.session.anonid, ide.options.workspaceId, userData, function(err) {
                 if (err) {
                     next(err);
                     pause.resume();

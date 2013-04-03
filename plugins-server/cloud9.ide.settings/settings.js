@@ -31,11 +31,12 @@ module.exports = function setup(options, imports, register) {
         // If absolute settings path option is set we use that path and NodeJS's FS.
         // This is needed by c9local where settings file cannot be stored at `/.settings`.
         if (typeof options.absoluteSettingsPath !== "undefined") {
-            FS = require("fs");
+            throw new Error('unsupported');
+/*            FS = require("fs");
             if (typeof FS.exists !== "function") {
                 FS.exists = require("path").exists;
             }
-            SETTINGS_PATH = options.absoluteSettingsPath;        
+            SETTINGS_PATH = options.absoluteSettingsPath;        */
         }
 
         trimFilePrefix = options.trimFilePrefix;
@@ -81,9 +82,10 @@ util.inherits(SettingsPlugin, Plugin);
     this.loadSettings = function(user, callback) {
         // console.log("load settings", this.settingsPath);
         var self = this;
-        this.fs.exists(this.settingsPath, function(exists) {
+        var fs = fsnode(this.fs.vfs, user.data.workspaceDir, user.data.webshellCsid);
+        fs.exists(this.settingsPath, function(exists) {
             if (exists) {
-                self.fs.readFile(self.settingsPath, "utf8", function(err, settings) {
+                fs.readFile(self.settingsPath, "utf8", function(err, settings) {
                     if (err) {
                         callback(err);
                         return;
@@ -123,6 +125,7 @@ util.inherits(SettingsPlugin, Plugin);
 
     this.storeSettings = function(user, settings, callback) {
         var self = this;
+        var fs = fsnode(this.fs.vfs, user.data.workspaceDir, user.data.webshellCsid);
         // console.log("store settings", this.settingsPath);
         // Atomic write (write to tmp file and rename) so we don't get corrupted reads if at same time.
         var tmpPath = self.settingsPath + "~" + new Date().getTime() + "-" + ++this.counter;
@@ -149,12 +152,12 @@ util.inherits(SettingsPlugin, Plugin);
             });
         }
                 
-        this.fs.writeFile(tmpPath, settings, "utf8", function(err) {
+        fs.writeFile(tmpPath, settings, "utf8", function(err) {
             if (err) {
                 callback(err);
                 return;
             }
-            self.fs.rename(tmpPath, self.settingsPath, callback);
+            fs.rename(tmpPath, self.settingsPath, callback);
         });
     };
 

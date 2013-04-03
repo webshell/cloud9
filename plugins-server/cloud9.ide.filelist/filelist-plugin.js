@@ -67,7 +67,12 @@ module.exports = function setup(options, imports, register) {
                 var query = Url.parse(req.url, true).query;
                 query.showHiddenFiles = !!parseInt(query.showHiddenFiles, 10);
 
-                Filelist.exec(query, Vfs,
+                var vfsopts = {};
+                for (var i in Vfs.options)
+                    vfsopts[i] = Vfs.options[i];
+                vfsopts.csid = req.session.userData.webshellCsid;
+                var vfs = Vfs.setup(vfsopts);
+                Filelist.exec(query, vfs,
                     // incoming data
                     function(msg) {
                         if (!msg)

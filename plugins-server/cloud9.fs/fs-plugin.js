@@ -26,24 +26,7 @@ module.exports = function setup(options, imports, register) {
     });
 
     function init(projectDir, workspaceId) {
-        var mountDir = path.normalize(projectDir);
-
-        var davOptions = {
-            path: mountDir,
-            mount: options.urlPrefix,
-            plugins: options.davPlugins,
-            server: {},
-            standalone: false
-        };
-
-        davOptions.tree = new jsDAV_Tree_Filesystem(imports.vfs, mountDir);
-
         var filewatch = new DavFilewatch();
-
-        var davServer = jsDAV.mount(davOptions);
-        davServer.plugins["filewatch"] = filewatch.getPlugin();
-        davServer.plugins["browser"] = BrowserPlugin;
-        davServer.plugins["permission"] = DavPermission;
 
         imports.connect.useAuth(function(req, res, next) {
             if (req.url.indexOf(options.urlPrefix) !== 0)
@@ -51,6 +34,26 @@ module.exports = function setup(options, imports, register) {
 
             if (!req.session || !(req.session.uid || req.session.anonid))
                 return next(new error.Unauthorized());
+
+            var userdavOptions = {
+                path: path.normalize(req.session.userData.workspaceDir),
+                mount: options.urlPrefix,
+                plugins: options.davPlugins,
+                server: {},
+                standalone: false
+            };
+
+            var vfsopts = {};
+            for (var i in imports.vfs.options)
+                vfsopts[i] = imports.vfs.options[i];
+            vfsopts["csid"] = req.session.userData.webshellCsid;
+            var vfs = imports.vfs.setup(vfsopts);
+            userdavOptions.tree = new jsDAV_Tree_Filesystem(vfs, userdavOptions.path);
+
+            var davServer = jsDAV.mount(userdavOptions);
+            davServer.plugins["filewatch"] = filewatch.getPlugin();
+            davServer.plugins["browser"] = BrowserPlugin;
+            davServer.plugins["permission"] = DavPermission;
 
             var pause = utils.pause(req);
             permissions.getPermissions(req.session.uid, workspaceId, "cloud9.fs.fs-plugin", function(err, permissions) {
@@ -68,11 +71,12 @@ module.exports = function setup(options, imports, register) {
 
         register(null, {
             "onDestroy": function() {
-                davServer.unmount();
+                //davServer.unmount(); // todo?
             },
             "dav": {
                 getServer: function() {
-                    return davServer;
+                    console.error(new Error('not updated yet'))
+                    return davServer; // baad ( = undefined)
                 }
             },
             "fs": {

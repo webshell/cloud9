@@ -6,7 +6,7 @@ var User = module.exports = function (uid, permissions, data) {
     EventEmitter.call(this);
 
     this.uid = uid;
-    this.data = data;
+    this.data = data || {};
     this.clients = [];
     this.last_message_time = new Date().getTime();
     this.permissions = permissions || User.VISITOR_PERMISSIONS;

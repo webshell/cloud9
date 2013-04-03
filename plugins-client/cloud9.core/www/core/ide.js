@@ -30,6 +30,8 @@ define(function(require, exports, module) {
         this.pid            = window.cloud9config.pid;
         this.env            = window.cloud9config.env;
         this.local          = window.cloud9config.local;
+        this.webshellCsid   = window.cloud9config.webshellCsid;
+        this.webshellPath   = window.cloud9config.webshellPath;
         this.apiPrefix      = this.davPrefix.replace(/workspace/, "api");
 
         this.loggedIn       = parseInt(this.uid, 10) > 0;

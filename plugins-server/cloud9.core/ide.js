@@ -14,6 +14,7 @@ var Workspace = require("./workspace");
 var EventEmitter = require("events").EventEmitter;
 var c9util = require("./util");
 var Path = require("path");
+var Url = require("url");
 
 var Ide = module.exports = function(options) {
     EventEmitter.call(this);
@@ -126,9 +127,20 @@ util.inherits(Ide, EventEmitter);
                     _self.options.workspaceId + '"></script>';
             }
 
+            var user = _self.getUser(req);
+
+            if ( ! req.session.userData)
+                req.session.userData = user.data;
+            else {
+                if (user.data.webshellCsid)
+                    req.session.userData.webshellCsid = user.data.webshellCsid;
+                if (user.data.workspaceDir)
+                    req.session.userData.workspaceDir = user.data.workspaceDir;
+            }
+
             var replacements = {
                 davPrefix: _self.options.davPrefix,
-                workspaceDir: _self.options.workspaceDir,
+                workspaceDir: _self.workspaceDir,
                 debug: _self.options.debug,
                 workerUrl: workerUrl,
                 staticUrl: staticUrl,
@@ -152,11 +164,12 @@ util.inherits(Ide, EventEmitter);
                 packedName: _self.options.packedName,
                 local: _self.options.local,
                 loadedDetectionScript: loadedDetectionScript,
-                _csrf: req.session && req.session._csrf || ""
+                _csrf: req.session && req.session._csrf || "",
+                webshellCsid: req.session.userData.webshellCsid,
+                webshellPath: req.session.userData.workspaceDir
             };
 
             var settingsPlugin = _self.workspace.getExt("settings");
-            var user = _self.getUser(req);
 
             if (!settingsPlugin || !user) {
                 index = template.fill(index, replacements);

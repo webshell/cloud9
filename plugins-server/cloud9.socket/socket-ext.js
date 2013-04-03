@@ -36,7 +36,7 @@ module.exports = function setup(options, imports, register) {
                             });
                         }
 
-                        IDE.addUser(uid, userPermissions);
+                        IDE.addUser(uid, userPermissions, session.userData);
                         IDE.addClientConnection(uid, connection, message);
                     });
                 });            
