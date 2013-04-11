@@ -105,7 +105,6 @@ var config = [
             "ext/code/code",
             "ext/statusbar/statusbar",
             "ext/imgview/imgview",
-            // "ext/preview/preview",
             // "ext/extmgr/extmgr",
             //"ext/run/run", //Add location rule
             "ext/runpanel/runpanel", //Add location rule

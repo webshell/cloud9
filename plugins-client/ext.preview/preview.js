@@ -79,7 +79,7 @@ module.exports = ext.register($name, {
                 }
             }), 10)
         );
-
+*/
         dock.addDockable({
             expanded : -1,
             width : 400,
@@ -95,7 +95,7 @@ module.exports = ext.register($name, {
                     hidden : false
                 }]
             }]
-        });*/
+        });
 
         dock.register(this.$name, this.$button, {
             menu : "Preview Apps",

@@ -82,41 +82,19 @@
                                       skin      = "dropdown-dark-glossy"
                                       class     = "single-arrow">
                                         <a:item caption="Auto" value="auto" />
-                                        <a:item caption="Node.js (Auto)" value="node auto" />
-                                        <a:item caption="Node.js 0.8.x" value="node 0.8" />
-                                        <a:item caption="Node.js 0.6.x" value="node 0.6" />
-                                        <a:item caption="Apache+PHP" value="apache" />
-                                        <a:item caption="PHP CLI" value="php" />
-                                        <a:item caption="Python" value="python" />
-                                        <a:item caption="Ruby" value="ruby" />
-                                        <a:item caption="Other..." value="other" />
+                                        <a:item caption="Webshell javascript" value="wsh" />
+                                        <a:item caption="Webshell coffee" value="wsh-coffee" />
+                                        <a:item caption="Webshell typescript" value="wsh-typescript" />
                                     </a:dropdown>
                                 </a:hbox>
-                                <a:hbox id="hbxOtherRuntime" height="36" align="center" visible="false">
-                                    <a:label width="93" class="graylabel size-12 arial dark-bg">Other runtime</a:label>
-                                    <a:textbox id="txtOtherRuntime"
-                                      skin     = "searchbox_textbox"
-                                      class    = "dark-bg"
-                                      flex     = "1"
-                                      value    = "[{lstRunCfg.selected}::@runtime]"
-                                      initial-message = "auto"/>
-                                </a:hbox>
                                 <a:hbox height="36" align="center">
-                                    <a:label width="93" class="graylabel size-12 arial dark-bg">Cmd Line Args</a:label>
+                                    <a:label width="93" class="graylabel size-12 arial dark-bg">JSON Args</a:label>
                                     <a:textbox id="txtCmdArgs"
                                       skin     = "searchbox_textbox"
                                       class    = "dark-bg"
                                       flex     = "1"
                                       value    = "[{lstRunCfg.selected}::@args]"
                                       initial-message = "Optional"/>
-                                </a:hbox>
-                                <a:hbox height="36" align="center">
-                                    <a:label width="93" class="graylabel size-12 arial dark-bg">Debug Mode</a:label>
-                                    <a:checkbox id="cbRunDbgDebugMode"
-                                      class = "underlined dark-bg"
-                                      label = "Enabled by default"
-                                      skin  = "checkbox_black"
-                                      value = "[{lstRunCfg.selected}::@debug]" />
                                 </a:hbox>
                                 <a:divider skin="c9-divider-hor" margin="0 -9 0 -8" />
                                 <a:hbox edge="11 0 0 0" pack="end" align="center" padding="17">
@@ -127,7 +105,7 @@
                                       onclick  = "mnuRunCfg.hide()" />
                                     <a:button
                                       id      = "btnRunDbgRun"
-                                      caption = "{([{lstRunCfg.selected}::@active] == 'true' ? (apf.isTrue(cbRunDbgDebugMode.value) ? 'Run in Debug Mode' : 'Run') : 'Run Once')}"
+                                      caption = "Run"
                                       width   = "170"
                                       skin    = "button-colorless"
                                       class   = "green dark"

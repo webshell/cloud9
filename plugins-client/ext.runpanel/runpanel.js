@@ -26,8 +26,8 @@ var markupSettings = require("text!ext/runpanel/settings.xml");
 var cssString = require("text!ext/runpanel/style.css");
 
 /*global stProcessRunning, barTools, mnuContextTabs, btnRun, tabEditors, mnuCtxEditor,
-mnuCtxEditorRevisions, lstRunCfg, tabDebug, tabDebugButtons, cbRunDbgDebugMode,
-btnRunDbgRun, mnuRunCfg, txtCmdArgs, trFiles, ddRunnerSelector, hbxOtherRuntime*/
+mnuCtxEditorRevisions, lstRunCfg, tabDebug, tabDebugButtons,
+btnRunDbgRun, mnuRunCfg, txtCmdArgs, trFiles, ddRunnerSelector*/
 
 module.exports = ext.register("ext/runpanel/runpanel", {
     name    : "Run Panel",
@@ -47,7 +47,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
     defaultWidth : 270,
 
     excludedTypes : {"xml":1, "html":1, "css":1, "txt":1, "png": 1, "jpg": 1, "gif": 1},
-    configProps: ["path", "name", "value", "args", "debug", "extension", "runner"],
+    configProps: ["path", "name", "value", "args", "extension", "runner"],
     // see parseSubstitutions() to see what this does...
     substitutionErrors: {
         curfile: {
@@ -72,7 +72,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
 
         Commands.addCommand({
             name: "run",
-            "hint": "run or debug an application (stops the app if running)",
+            "hint": "run an application",
             "commands": {
                 "[PATH]": {"hint": "path pointing to an executable. Autocomplete with [TAB]"}
             },
@@ -99,7 +99,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
 
         Commands.addCommand({
             name: "runthisfile",
-            "hint": "run or debug this file (stops the app if running)",
+            "hint": "run this file",
             exec: function () {
                 _self.runThisFile();
             }
@@ -107,7 +107,17 @@ module.exports = ext.register("ext/runpanel/runpanel", {
 
         Commands.addCommand({
             name: "runthistab",
-            "hint": "run or debug current file (stops the app if running)",
+            "hint": "run current file",
+            exec: function (editor, arg) {
+                if (arg && !arg[0] && arg.source == "click")
+                    arg = [mnuContextTabs.$page];
+                _self.runThisTab(arg[0]);
+            }
+        });
+
+        Commands.addCommand({
+            name: "runactivetab",
+            "hint": "run active file",
             exec: function () {
                 _self.runThisTab();
             }
@@ -116,7 +126,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
         Menus.$insertByIndex(barTools, new apf.splitbutton({
             id              : "btnRun",
             skin            : "run-splitbutton",
-            checked         : "[{lstRunCfg.selected}::@debug]",
+            checked         : "false",
             icon            : "{stProcessRunning.active and 1 ? 'stop.png' : apf.isTrue(this.checked) ? 'bug.png' : 'run.png'}",
             caption         : "{stProcessRunning.active and 1 ? 'Stop' : 'Run'}",
             command         : "run",
@@ -131,7 +141,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
             this.model = new apf.model().load("<configurations />"),
 
             Menus.addItemByPath("View/Tabs/Run This File", new apf.item({
-                command : "runthistab",
+                command : "runactivetab",
                 disabled : "{!!!tabEditors.activepage or !!stProcessRunning.active}"
             }), 400),
             Menus.addItemByPath("View/Tabs/~", new apf.divider(), 300)
@@ -148,7 +158,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
         });
 
         Tooltip.add(btnRun.$button1, {
-            message : "Run &amp; Debug your <span>Node.js</span> applications, or run your <span>PHP</span>, <span>Python</span>, or <span>Ruby</span> code.\
+            message : "Run &amp; your <span>webshell</span> application code.\
             For more help, check out our guided tour in the Help menu.",
             width : "203px",
             timeout : 1000,
@@ -166,7 +176,6 @@ module.exports = ext.register("ext/runpanel/runpanel", {
             ]);
 
             Settings.setDefaults("auto/configurations", [
-                ["debug", "true"],
                 ["autohide", "true"],
                 ["showruncfglist", "false"]
             ]);
@@ -221,59 +230,6 @@ module.exports = ext.register("ext/runpanel/runpanel", {
                 );
             });
         });
-
-        var hasBreaked = false;
-        stProcessRunning.addEventListener("deactivate", function(){
-            if (!_self.autoHidePanel())
-                return;
-
-            var name = "ext/debugger/debugger";
-            Dock.hideSection(name, false);
-            hasBreaked = false;
-
-            var bar = Dock.getBars("ext/debugger/debugger", "pgDebugNav")[0];
-            if (!bar.extended)
-                Dock.hideBar(bar);
-        });
-        stProcessRunning.addEventListener("activate", function(){
-            var debug = lstRunCfg.selected && apf.isTrue(lstRunCfg.selected.getAttribute("debug"));
-            if (!debug || !_self.autoHidePanel())
-                return;
-
-            var bar = Dock.getBars("ext/debugger/debugger", "pgDebugNav")[0];
-            delete bar.cache;
-            if (!bar.extended)
-                Dock.showBar(bar);
-        });
-        ide.addEventListener("dbg.break", function(){
-            var debug = lstRunCfg.selected && apf.isTrue(lstRunCfg.selected.getAttribute("debug"));
-            if (!debug || !_self.autoHidePanel() || hasBreaked)
-                return;
-
-            hasBreaked = true;
-
-            var name = "ext/debugger/debugger";
-            Dock.showSection(name, false);
-
-            var uId = Dock.getButtons(name, "pgDebugNav")[0].uniqueId;
-            if (Dock.layout.isExpanded(uId) < 0)
-                Dock.layout.showMenu(uId);
-
-            //var bar = Dock.getBars("ext/debugger/debugger", "pgDebugNav")[0];
-            //Dock.expandBar(bar);
-        });
-
-        // When we are not in debug mode and we close a page it goes back to be
-        // automatically opened when the debug process starts
-        ide.addEventListener("init.ext/debugger/debugger", function(){
-            tabDebug.getPages().concat(tabDebugButtons.getPages()).each(function(page){
-                page.addEventListener("afterclose", function(e){
-                    if (_self.autoHidePanel() && !stProcessRunning.active) {
-                        this.$dockbutton.$dockData.hidden = 1;
-                    }
-                });
-            });
-        });
     },
 
     saveSelection: function() {
@@ -288,10 +244,6 @@ module.exports = ext.register("ext/runpanel/runpanel", {
         }
         else
             lstRunCfg.select(lstRunCfg.$model.queryNode("//config"));
-        /*
-        var caption = apf.isTrue(lstRunCfg.selected.getAttribute("active")) ? (apf.isTrue(cbRunDbgDebugMode.value) ? 'Run in Debug Mode' : 'Run') : 'Run Once';
-        btnRunDbgRun.setCaption(caption);
-        */
     },
 
     init: function(amlNode){
@@ -334,7 +286,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
             // may be empty.
             var xmlNode = e.selected;
             // here goes what needs to happen when a run config is selected
-            var caption = apf.isTrue(cbRunDbgDebugMode.value) ? "Run in Debug Mode" : "Run";
+            var caption = "Run";
             btnRunDbgRun.setCaption(caption);
 
             var value = xmlNode && xmlNode.getAttribute("runtime") || "auto";
@@ -369,19 +321,6 @@ module.exports = ext.register("ext/runpanel/runpanel", {
                 return;
             var runner = node.value || "auto";
             var activeRuntime = lstRunCfg.selected && lstRunCfg.selected.getAttribute("runtime");
-            if (runner == "other") {
-                apf.setStyleClass(mnuRunCfg.$ext, "withOther", []);
-                hbxOtherRuntime.show();
-
-                if (activeRuntime && this.selected && Noderunner.runners.indexOf(runner.split(" ")[0]) > -1)
-                    apf.xmldb.removeAttribute(lstRunCfg.selected, "runtime");
-            }
-            else {
-                hbxOtherRuntime.hide();
-                apf.setStyleClass(mnuRunCfg.$ext, null, ["withOther"]);
-                if (activeRuntime && this.selected)
-                    apf.xmldb.setAttribute(lstRunCfg.selected, "runtime", node.value);
-            }
         });
 
         setTimeout(function() {
@@ -473,7 +412,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
     },
 
     shouldRunInDebugMode: function(){
-        return apf.isTrue(Settings.model.queryValue('auto/configurations/@debug'));
+        return false;
     },
 
     run: function(debug) {
@@ -510,7 +449,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
 
         this.runConfig(node);
 
-        ide.dispatchEvent("track_action", {type: node.getAttribute("debug") ? "debug" : "run"});
+        ide.dispatchEvent("track_action", {type: "run"});
     },
 
     runThisFile: function() {
@@ -519,16 +458,17 @@ module.exports = ext.register("ext/runpanel/runpanel", {
 
         this.runConfig(node);
 
-        ide.dispatchEvent("track_action", {type: node.getAttribute("debug") ? "debug" : "run"});
+        ide.dispatchEvent("track_action", {type: "run"});
     },
 
-    runThisTab: function() {
-        var file = ide.getActivePageModel();
-        var node = this.addConfig(true, file);
+    runThisTab: function(page) {
+        if (!page || page.command)
+            page = ide.getActivePage();
+        var node = this.addConfig(true, page.$doc.getNode());
 
         this.runConfig(node);
 
-        ide.dispatchEvent("track_action", {type: node.getAttribute("debug") ? "debug" : "run"});
+        ide.dispatchEvent("track_action", {type: "run"});
     },
 
     runConfig: function(config) {
@@ -537,8 +477,6 @@ module.exports = ext.register("ext/runpanel/runpanel", {
         var saveallbeforerun = apf.isTrue(model.queryValue("general/@saveallbeforerun"));
         if (saveallbeforerun)
             Save.saveall();
-
-        var debug = apf.isTrue(config.getAttribute("debug"));
 
         if (mnuRunCfg.visible)
             mnuRunCfg.hide();
@@ -551,18 +489,21 @@ module.exports = ext.register("ext/runpanel/runpanel", {
         // will vary over time
         ide.dispatchEvent("beforeRunning");
 
-        var prevRunNode = this.model.data.selectSingleNode('node()[@running="true"]');
-        if (prevRunNode)
-            prevRunNode.removeAttribute("running");
-        config.setAttribute("running", "true");
         Settings.save();
 
         var _self = this;
-        var args = (config.getAttribute("args") || "").split(" ").map(function(arg) {
-            return _self.parseSubstitutions(arg);
-        }).filter(function(arg) {
-            return !!arg;
-        });
+        var args = {};
+        try {
+            args = JSON.parse(_self.parseSubstitutions(config.getAttribute("args")) || "{}");
+        }
+        catch (e) {
+            console.log(e.stack);
+            util.alert("Error", "Could not parse JSON Arguments", 'Invalid JSON: "' + config.getAttribute("args") + '"', function() {
+                mnuRunCfg.show();
+                txtCmdArgs.$focus();
+            });
+            return;
+        }
         var path = this.parseSubstitutions(config.getAttribute("path"));
         if (!path)
             return;
@@ -570,9 +511,8 @@ module.exports = ext.register("ext/runpanel/runpanel", {
         Noderunner.run(
             path,
             args,
-            debug,
-            config.getAttribute("value"),
-            (config.getAttribute("runtime") || "").split(" ")[0]
+            false,
+            config.getAttribute("value")
         );
     },
 
@@ -585,14 +525,14 @@ module.exports = ext.register("ext/runpanel/runpanel", {
 
         // replace subs:
         var _self = this;
-        return str.replace(/\{([\w]*)\}/g, function(m, sub) {
+        return str.replace(/\{([\w]+?)\}/g, function(m, sub) {
             var errObj = _self.substitutionErrors[sub];
             if (subs[sub])
                 return subs[sub];
             else if (errObj)
                 util.alert("Error", errObj.title, errObj.body);
-            return "";
-        });
+            return "{" + sub + "}";
+        }).trim();
     },
 
     stop: function() {
@@ -604,7 +544,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
         if (ide.infraEnv)
             require("ext/docum" + "entation/documentation").show(page);
         else
-            window.open("https://docs.c9.io/" + page + ".html");
+            window.open("http://webshell.local/docs/editor");
     },
 
     enable: function(){

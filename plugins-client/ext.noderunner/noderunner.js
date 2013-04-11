@@ -13,6 +13,7 @@ var settings = require("core/settings");
 var markup = require("text!ext/noderunner/noderunner.xml");
 var c9console = require("ext/console/console");
 var _debugger = require("ext/debugger/debugger");
+var preview = require("ext/preview/preview");
 
 /*global stProcessRunning*/
 
@@ -138,63 +139,50 @@ module.exports = ext.register("ext/noderunner/noderunner", {
 
     run : function(path, args, debug, nodeVersion, otherRunner) {
         var runner;
-        if (stProcessRunning.active || typeof path != "string")
+        if (typeof path != "string")
             return false;
-        // TODO there should be a way to set state to waiting
-        stProcessRunning.activate();
 
-        path = path.trim();
-
-        if (otherRunner && this.runners.indexOf(otherRunner) === -1) {
-            runner = "other";
-            nodeVersion = otherRunner;
+        var wshargs = {};
+        if (typeof args == 'object' && ! Array.isArray(args) && Object.keys(args).length) {
+            wshargs.args = JSON.stringify(args);
         }
-        else if (nodeVersion == "default" || !nodeVersion) {
+
+        if (nodeVersion == "default" || !nodeVersion) {
             runner = this.detectRunner(path);
-            nodeVersion = runner == "node" ? settings.model.queryValue("auto/node-version/@version") || this.NODE_VERSION : "auto";
+            nodeVersion = "auto";
         }
         else {
             runner = nodeVersion.split(" ")[0];
             nodeVersion = nodeVersion.split(" ")[1] || "auto";
         }
 
-        var page = ide.getActivePageModel();
-        var command = {
-            "command" : apf.isTrue(debug) ? "RunDebugBrk" : "Run",
-            "file"    : path.replace(/^\/+/, ""),
-            "runner"  : runner,
-            "args"    : args || [],
-            "version" : nodeVersion,
-            "env"     : {
-                "C9_SELECTED_FILE": page ? page.getAttribute("path").slice(ide.davPrefix.length) : ""
+        if (runner && runner != 'wsh')
+            wshargs.runner = runner;
+
+        var query = "";
+        if (Object.keys(wshargs).length) {
+            for (var i in wshargs) {
+                query += "&" + i + "=" + encodeURIComponent(wshargs[i]);
             }
-        };
-        ide.send(command);
+            query = "?" + query.substr(1);
+        }
+
+        path = path.trim().replace(/^\/+/, "");
+
+        preview.preview("http://" + ide.webshellPath.substr(1).replace(/\/.*$/, "") + ".webshell.local/" + path + query);
     },
 
     stop : function() {
-        if (!stProcessRunning.active)
-            return;
-
-        ide.send({
-            "command": "kill",
-            "runner" : "node",
-            "pid"    : this.nodePid
-        });
-        this.queryServerState();
     },
 
     detectRunner: function(path) {
-        if (path.match(/\.(php|phtml)$/))
-            return "apache";
+        if (path.match(/\.coffee$/))
+            return "wsh-coffee";
 
-        if (path.match(/\.py$/))
-            return "python";
+        if (path.match(/\.ts$/))
+            return "wsh-typescript";
 
-        if (path.match(/\.rb$/))
-            return "ruby";
-
-        return "node";
+        return "wsh";
     }
 });
 
