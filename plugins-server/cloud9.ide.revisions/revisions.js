@@ -31,7 +31,11 @@ var Diff = new Diff_Match_Patch();
 var name = "revisions";
 
 module.exports = function setup(options, imports, register) {
-    var fs;
+    var base;
+
+    function getFs(user) {
+        return fsnode(imports.vfs, user.data.workspaceDir, user.data.webshellCsid);
+    }
 
     function RevisionsPlugin(ide, workspace) {
         Plugin.call(this, ide, workspace);
@@ -43,7 +47,7 @@ module.exports = function setup(options, imports, register) {
         // This queue makes sure that changes are saved asynchronously but orderly
         this.savingQueue = Async.queue(function(data, callback) {
             var msg = data.message;
-            _self.saveSingleRevision.call(_self, msg.path, msg.revision, function(err, revisions) {
+            _self.saveSingleRevision.call(_self, msg.path, data._user, msg.revision, function(err, revisions) {
                 var revMeta = {
                     revision: revisions,
                     absPath: _self.getRevisionsPath(msg.path + "." + FILE_SUFFIX)
@@ -67,7 +71,7 @@ module.exports = function setup(options, imports, register) {
                 return;
 
             var _self = this;
-            this.getAllRevisions(revisionInfo.absPath, function(_err, revObj) {
+            this.getAllRevisions(revisionInfo.absPath, user, function(_err, revObj) {
                 if (_err) {
                     return _error("Error retrieving revisions for file " +
                         revisionInfo.absPath + "\n" + _err);
@@ -97,7 +101,7 @@ module.exports = function setup(options, imports, register) {
             }
 
             var _self = this;
-            this.getRevisions(message.path, function(err, revObj) {
+            this.getRevisions(message.path, user, function(err, revObj) {
                 if (err) {
                     return _error("There was a problem retrieving the revisions" +
                         " for the file " + message.path + ":\n" + err);
@@ -112,6 +116,7 @@ module.exports = function setup(options, imports, register) {
         };
 
         this.onGetRealFileContents = function(user, message, _error) {
+            var fs = getFs(user);
             fs.readFile(message.path, "utf8", function (err, data) {
                 if (err) {
                     return _error("There was a problem reading the contents for the file " +
@@ -132,6 +137,7 @@ module.exports = function setup(options, imports, register) {
             if (!message.path) {
                 return _error("No path sent for the file to be removed");
             }
+            var fs = getFs(user);
 
             cb = cb || function() {};
 
@@ -148,6 +154,7 @@ module.exports = function setup(options, imports, register) {
             if (!message.path || !message.newPath) {
                 return _error("Not enough paths sent for the file to be moved");
             }
+            var fs = getFs(user);
 
             var fromPath = this.getRevisionsPath(message.path);
             var toPath = this.getRevisionsPath(message.newPath);
@@ -187,7 +194,6 @@ module.exports = function setup(options, imports, register) {
             if (!message.command || message.command !== "revisions" || !message.subCommand) {
                 return false;
             }
-
             var _self = this;
             var _error = function(msg) {
                 _self.broadcastError(message.subCommand, msg, user);
@@ -288,8 +294,9 @@ module.exports = function setup(options, imports, register) {
             );
         };
 
-        this.getAllRevisions = function(absPath, callback) {
+        this.getAllRevisions = function(absPath, user, callback) {
             var _self = this;
+            var fs = getFs(user);
             fs.readFile(absPath, "utf8", function(err, data) {
                 if (err) return callback(err);
                 _self.extractRevisions(data, callback);
@@ -316,12 +323,13 @@ module.exports = function setup(options, imports, register) {
          * it will create one and return that. If there is any problem, it will call
          * the `callback` function with the error as the first argument.
          **/
-        this.getRevisions = function(filePath, callback) {
+        this.getRevisions = function(filePath, user, callback) {
             // Physical location of the workspace
             if (!this.ide.workspaceDir) {
                 return callback(new Error(
                     "Can't retrieve the path to the user's workspace\n" + this.workspace));
             }
+            var fs = getFs(user);
             // Path of the final backup file inside the workspace
             var revPath = this.getRevisionsPath(filePath + "." + FILE_SUFFIX);
             var _self = this;
@@ -329,10 +337,10 @@ module.exports = function setup(options, imports, register) {
             // does the revisions file exists?
             fs.exists(revPath, function(exists) {
                 if (exists)
-                    _self.getAllRevisions(revPath, callback);
+                    _self.getAllRevisions(revPath, user, callback);
                 else
                     // create new file
-                    _self.saveSingleRevision(filePath, null, callback);
+                    _self.saveSingleRevision(filePath, user, null, callback);
             });
         };
 
@@ -346,7 +354,7 @@ module.exports = function setup(options, imports, register) {
          * revision, or defaults to the current content of the document according to
          * the last revision.
          **/
-        this.retrieveRevisionContent = function(revObj, upperTSBound, callback) {
+        /*this.retrieveRevisionContent = function(revObj, upperTSBound, callback) {
             var timestamps = Object.keys(revObj.revisions).sort(function(a, b) {
                 return a - b;
             });
@@ -373,7 +381,7 @@ module.exports = function setup(options, imports, register) {
                 .end(function() {
                     callback(null, content);
                 });
-        };
+        };*/
 
         /**
          * RevisionsPlugin#getPreviousRevisionContent(path, callback)
@@ -383,7 +391,7 @@ module.exports = function setup(options, imports, register) {
          *
          * Retrieves the previous contents of the given file.
          **/
-        this.getPreviousRevisionContent = function(path, callback) {
+        /*this.getPreviousRevisionContent = function(path, callback) {
             var _self = this;
             this.getRevisions(path, function(err, revObj) {
                 if (err) {
@@ -397,7 +405,7 @@ module.exports = function setup(options, imports, register) {
                     callback(null, content);
                 });
             });
-        };
+        };*/
 
         /**
          * RevisionsPlugin#getCurrentDoc(path, message) -> String
@@ -475,15 +483,17 @@ module.exports = function setup(options, imports, register) {
             receiver.broadcast(JSON.stringify(data));
         };
 
-        this.saveSingleRevision = function(path, revision, callback) {
+        this.saveSingleRevision = function(path, user, revision, callback) {
             if (!path) {
                 return callback(new Error("Missing or wrong parameters (path, revision):", path, revision));
             }
+            var fs = getFs(user);
 
             var revPath = this.getRevisionsPath(path + "." + FILE_SUFFIX);
             var _self = this;
             function writeRevFile(aContent, aRevision) {
                 _self._writeRevisionFile.call(_self, {
+                    user: user,
                     realPath: path,
                     revPath: revPath,
                     revision: aRevision,
@@ -527,6 +537,7 @@ module.exports = function setup(options, imports, register) {
         this._writeRevisionFile = function(data) {
             var _self = this;
             data.content += JSON.stringify(data.revision) + "\n";
+            var fs = getFs(data.user);
 
             fs.mkdirP(Path.dirname(data.revPath), function(err) {
                 if (err) return data.cb(err);
@@ -544,7 +555,7 @@ module.exports = function setup(options, imports, register) {
     imports.sandbox.getProjectDir(function(err, projectDir) {
         if (err) return register(err);
 
-        fs = fsnode(imports.vfs, projectDir);
+        base = projectDir;
         imports.ide.register(name, RevisionsPlugin, register);
     });
 };
