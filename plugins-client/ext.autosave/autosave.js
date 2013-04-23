@@ -36,7 +36,7 @@ module.exports = ext.register("ext/autosave/autosave", {
         var _self = this;
         settings.addSettings("General", markupSettings);
         ide.addEventListener("settings.load", function(e){
-            e.ext.setDefaults("general", [["autosaveenabled", "true"]]);
+            e.ext.setDefaults("general", [["autosaveenabled", "false"]]);
             _self.isAutoSaveEnabled = apf.isTrue(e.model.queryValue("general/@autosaveenabled")) || _self.tempEnableAutoSave;
         });
 

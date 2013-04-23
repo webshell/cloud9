@@ -169,7 +169,7 @@ module.exports = ext.register("ext/noderunner/noderunner", {
 
         path = path.trim().replace(/^\/+/, "");
 
-        preview.preview("http://" + ide.webshellPath.substr(1).replace(/\/.*$/, "") + ".webshell.local/" + path + query);
+        preview.preview("http://" + ide.webshellPath.substr(1).replace(/\/.*$/, "") + ".webshell.local/" + path + query, debug);
     },
 
     stop : function() {

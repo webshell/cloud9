@@ -9,7 +9,6 @@ define(function(require, exports, module) {
 var ide = require("core/ide");
 var ext = require("core/ext");
 var util = require("core/util");
-var settings = require("ext/settings/settings");
 var menus = require("ext/menus/menus");
 var dock = require("ext/dockpanel/dockpanel");
 var editors = require("ext/editors/editors");
@@ -57,26 +56,6 @@ module.exports = ext.register($name, {
     hook: function() {
         var _self = this;
 
-        /*this.nodes.push(
-            menus.$insertByIndex(barTools, new apf.button({
-                skin : "c9-toolbarbutton-glossy",
-                //icon : "preview.png",
-                "class" : "preview",
-                tooltip : "Preview in browser",
-                caption : "Preview",
-                disabled : true,
-                onclick : function() {
-                    var page = ide.getActivePage();
-                    if (page.$editor === _self)
-                        return;
-                    var doc = page.$doc;
-                    var path = doc.getNode().getAttribute("path");
-                    var url = location.protocol + "//" + location.host + path;
-                    _self.preview(url, {path: path, value: doc.getValue()});
-                }
-            }), 10)
-        );
-*/
         dock.addDockable({
             expanded : -1,
             width : 400,
@@ -115,32 +94,6 @@ module.exports = ext.register($name, {
         ide.addEventListener("closefile", function(e){
             if (tabEditors.getPages().length == 1)
                 _self.disable();
-        });
-
-        ide.addEventListener("settings.save", function(e){
-            if (_self.inited) {
-                var url = txtPreview.getValue();
-                if (url) {
-                    var prev = {
-                        visible: _self.isVisible(),
-                        url: url,
-                        live: _self.live && {path: _self.live.path}
-                    };
-                    e.model.setQueryValue("auto/preview/text()", JSON.stringify(prev));
-                }
-            }
-        });
-
-        ide.addEventListener("extload", function(e){
-            ide.addEventListener("settings.load", function(e){
-
-                var json = e.model.queryValue("auto/preview/text()");
-                if (json) {
-                    var prev = JSON.parse(json);
-                    if (prev.visible)
-                        _self.refresh(prev.url, prev.live);
-                }
-            });
         });
 
         ide.addEventListener("dockpanel.loaded", function (e) {
@@ -205,13 +158,11 @@ module.exports = ext.register($name, {
         url = url || txtPreview.getValue();
         frmPreview.$ext.src = url;
         txtPreview.setValue(url);
-        settings.save();
     },
 
     close: function () {
         dock.hideSection(this.$name, this.$button);
         this.live = null;
-        settings.save();
     },
 
     init: function() {

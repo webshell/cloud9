@@ -170,7 +170,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
             ]);
 
             Settings.setDefaults("general", [
-                ["saveallbeforerun", "false"]
+                ["saveallbeforerun", "true"]
             ]);
 
             var changed = false;
@@ -500,7 +500,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
         Noderunner.run(
             path,
             args,
-            false,
+            true,
             config.getAttribute("value")
         );
     },

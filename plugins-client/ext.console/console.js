@@ -745,7 +745,7 @@ module.exports = ext.register("ext/console/console", {
 
         ide.addEventListener("settings.load", function(e){
             settings.setDefaults("auto/console", [
-                ["autoshow", "true"],
+                ["autoshow", "false"],
                 ["clearonrun", "false"]
             ]);
 
