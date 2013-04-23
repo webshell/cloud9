@@ -84,10 +84,8 @@ module.exports = function setup(options, imports, register) {
 
         var connectModule = connect.getModule();
         var server = connectModule();
-        connect.useAuth(baseUrl, server);
         connect.useStart(connectModule.query());
         connect.useSession(connectModule.csrf());
-
         server.use(function(req, res, next) {
             req.parsedUrl = parseUrl(req.url, true);
 
@@ -95,14 +93,19 @@ module.exports = function setup(options, imports, register) {
                 return next(new error.Unauthorized());
             // NOTE: This gets called multiple times!
 
-            var pause = utils.pause(req);
-
-            var userData = {
+            req.userData = {
                 webshellCsid: req.parsedUrl.query['webshellCsid'] || req.session.userData['webshellCsid'],
                 workspaceDir: req.parsedUrl.query['path'] || req.session.userData['workspaceDir']
             };
+            return next();
+        });
+        connect.useAuth(baseUrl, server);
 
-            initUserAndProceed(req.session.uid || req.session.anonid, ide.options.workspaceId, userData, function(err) {
+        server.use(function(req, res, next) {
+
+            var pause = utils.pause(req);
+
+            initUserAndProceed(req.session.uid || req.session.anonid, ide.options.workspaceId, req.userData, function(err) {
                 if (err) {
                     next(err);
                     pause.resume();

@@ -3,7 +3,7 @@
     <a:menu id="mnuRunCfg"
       skin  = "mnuRunCfg"
       skinset = "runpanel"
-      class = "{([{require('ext/settings/settings').model}::auto/configurations/@showruncfglist] == 'true' ? 'showList' : '')}">
+      class = "showList">
         <div class="window">
             <div class="tooltip"></div>
             <div class="fbox">
@@ -47,7 +47,7 @@
                               label = "Advanced"
                               skin  = "checkbox_black"
                               class = "dark-bg"
-                              value = "[{require('ext/settings/settings').model}::auto/configurations/@showruncfglist]"
+                              value = "true"
                               onclick = "
                                 apf.setStyleClass(mnuRunCfg.$ext, (this.checked ? 'showList' : ''), [(this.checked ? '' : 'showList')])
                               " />

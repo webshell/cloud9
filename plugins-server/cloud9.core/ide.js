@@ -189,6 +189,8 @@ util.inherits(Ide, EventEmitter);
         var user = this.$users[username];
         if (user) {
             user.setPermissions(permissions);
+            if (userData)
+                user.data = userData;
         }
         else {
             user = this.$users[username] = new User(username, permissions, userData);

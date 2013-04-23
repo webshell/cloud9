@@ -36,7 +36,7 @@ module.exports = function setup(options, imports, register) {
                 return next(new error.Unauthorized());
 
             var userdavOptions = {
-                path: path.normalize(req.session.userData.workspaceDir),
+                path: path.normalize(req.userData.workspaceDir),
                 mount: options.urlPrefix,
                 plugins: options.davPlugins,
                 server: {},
@@ -46,7 +46,7 @@ module.exports = function setup(options, imports, register) {
             var vfsopts = {};
             for (var i in imports.vfs.options)
                 vfsopts[i] = imports.vfs.options[i];
-            vfsopts["csid"] = req.session.userData.webshellCsid;
+            vfsopts["csid"] = req.userData.webshellCsid;
             var vfs = imports.vfs.setup(vfsopts);
             userdavOptions.tree = new jsDAV_Tree_Filesystem(vfs, userdavOptions.path);
 

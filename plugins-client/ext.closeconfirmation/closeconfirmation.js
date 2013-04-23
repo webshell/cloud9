@@ -29,7 +29,7 @@ module.exports = ext.register("ext/closeconfirmation/closeconfirmation", {
         
         ide.addEventListener("settings.load", function(){
             settings.setDefaults("general", [
-                ["confirmexit", "false"]
+                ["confirmexit", "true"]
             ]);
         });
  

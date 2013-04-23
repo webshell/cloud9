@@ -16,7 +16,6 @@ var editors = require("ext/editors/editors");
 var markup = require("text!ext/preview/preview.xml");
 var skin    = require("text!ext/preview/skin.xml");
 var css     = require("text!ext/preview/style/style.css");
-var markupSettings = require("text!ext/preview/settings.xml");
 
 var $name = "ext/preview/preview";
 
@@ -57,8 +56,6 @@ module.exports = ext.register($name, {
 
     hook: function() {
         var _self = this;
-
-        settings.addSettings("General", markupSettings);
 
         /*this.nodes.push(
             menus.$insertByIndex(barTools, new apf.button({
@@ -136,9 +133,6 @@ module.exports = ext.register($name, {
 
         ide.addEventListener("extload", function(e){
             ide.addEventListener("settings.load", function(e){
-                settings.setDefaults("preview", [
-                    ["running_app", "false"]
-                ]);
 
                 var json = e.model.queryValue("auto/preview/text()");
                 if (json) {

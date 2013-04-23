@@ -22,7 +22,6 @@ var Commands = require("ext/commands/commands");
 
 var markup = require("text!ext/runpanel/runpanel.xml");
 var skin = require("text!ext/runpanel/skin.xml");
-var markupSettings = require("text!ext/runpanel/settings.xml");
 var cssString = require("text!ext/runpanel/style.css");
 
 /*global stProcessRunning, barTools, mnuContextTabs, btnRun, tabEditors, mnuCtxEditor,
@@ -165,7 +164,6 @@ module.exports = ext.register("ext/runpanel/runpanel", {
             hideonclick : true
         });
 
-        Settings.addSettings("General", markupSettings);
         ide.addEventListener("settings.load", function(e){
             Settings.setDefaults("auto/node-version", [
                 ["version", "auto"]
@@ -173,11 +171,6 @@ module.exports = ext.register("ext/runpanel/runpanel", {
 
             Settings.setDefaults("general", [
                 ["saveallbeforerun", "false"]
-            ]);
-
-            Settings.setDefaults("auto/configurations", [
-                ["autohide", "true"],
-                ["showruncfglist", "false"]
             ]);
 
             var changed = false;
@@ -405,10 +398,6 @@ module.exports = ext.register("ext/runpanel/runpanel", {
         var lastNode = Settings.model.queryNode("auto/configurations/config[@last='true']");
         if (lastNode)
             lstRunCfg.select(lastNode);
-    },
-
-    autoHidePanel: function(){
-        return apf.isTrue(Settings.model.queryValue("auto/configurations/@autohide"));
     },
 
     shouldRunInDebugMode: function(){
