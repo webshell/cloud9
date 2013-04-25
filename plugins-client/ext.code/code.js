@@ -187,9 +187,20 @@ module.exports = ext.register("ext/code/code", {
         }
     },
 
-    getSyntax : function(node) {
+    getSyntax : function(node, doc) {
         if (!node)
             return "";
+
+        var defmode;
+        if (doc) {
+            var content = doc.getValue();
+            if (content) {
+                if (content.substr(0,9) == "#! coffee")
+                    defmode = "coffee";
+                else if (content.substr(0,13) == "#! typescript")
+                    defmode = "ts";
+            }
+        }
 
         var mode = node.getAttribute("customtype");
         var ext;
@@ -202,11 +213,39 @@ module.exports = ext.register("ext/code/code", {
         else {
             var fileName = node.getAttribute("name");
             var dotI = fileName.lastIndexOf(".") + 1;
-            ext = dotI ? fileName.substr(dotI).toLowerCase() : "*" + fileName;
+            if (dotI)
+                ext = fileName.substr(dotI).toLowerCase()
+            else
+                ext = defmode || "js";
             mode = fileExtensions[ext];
         }
 
         return SupportedModes[mode] ? mode : "text";
+    },
+
+    refreshSyntax : function() {
+        var file = ide.getActivePageModel();
+        if (!file)
+            return;
+
+        value = this.getSyntax(file, ide.getActivePage().$doc);
+
+        var fileName = file.getAttribute("name");
+        var dotI = fileName.lastIndexOf(".") + 1;
+        var ext = dotI ? fileName.substr(dotI).toLowerCase() : "*" + fileName;
+
+        var mime = SupportedModes[value].mime;
+
+        ide.dispatchEvent("track_action", {
+            type: "syntax highlighting",
+            fileType: ext,
+            fileName: fileName,
+            mime: mime,
+            customType: value
+        });
+
+        if (this.amlEditor)
+            this.amlEditor.setAttribute("syntax", value);
     },
 
     setSyntax : function(value) {
@@ -245,12 +284,13 @@ module.exports = ext.register("ext/code/code", {
             mime: mime,
             customType: value
         });
+
         if (this.amlEditor)
-            this.amlEditor.setAttribute("syntax", this.getSyntax(file));
+            this.amlEditor.setAttribute("syntax", this.getSyntax(file, ide.getActivePage().$doc));
     },
 
     getContentType : function(node) {
-        var syntax = this.getSyntax(node);
+        var syntax = this.getSyntax(node, ide.getActivePage().$doc);
         if (!syntax)
             return "auto";
 
@@ -280,7 +320,7 @@ module.exports = ext.register("ext/code/code", {
         else {
             doc.isInited = doc.hasValue();
             doc.acedoc = doc.acedoc || new ProxyDocument(new Document(doc.getValue() || ""));
-            var syntax = _self.getSyntax(doc.getNode());
+            var syntax = _self.getSyntax(doc.getNode(), doc);
             var mode = amlEditor.getMode(syntax);
             doc.acesession = new EditSession(doc.acedoc, mode);
             doc.acesession.syntax = syntax;
@@ -831,9 +871,10 @@ module.exports = ext.register("ext/code/code", {
             // this needs to be called after rename but there is only event before
             setTimeout(function() {
                 var doc = page.$doc;
-                var syntax = _self.getSyntax(doc.getNode());
+                var syntax = _self.getSyntax(doc.getNode(), doc);
                 // This event is triggered also when closing files, so session may be gone already.
                 if(doc.acesession) {
+                    _self.refreshSyntax();
                     doc.acesession.setMode(_self.amlEditor.getMode(syntax));
                     doc.acesession.syntax = syntax;
                 }
@@ -959,6 +1000,7 @@ module.exports = ext.register("ext/code/code", {
                         bgMessage.parentNode.removeChild(bgMessage);
                 }, 100);
             }
+            _self.refreshSyntax();
         };
 
         ide.addEventListener("openfile", function(){

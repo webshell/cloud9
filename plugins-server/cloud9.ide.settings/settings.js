@@ -11,10 +11,11 @@ var Plugin = require("../cloud9.core/plugin");
 var fsnode = require("vfs-nodefs-adapter");
 var util = require("util");
 var assert = require("assert");
+var Path = require("path");
 
 var name = "settings";
 
-var FS;
+var vfs;
 var SETTINGS_PATH;
 
 var trimFilePrefix;
@@ -25,30 +26,19 @@ module.exports = function setup(options, imports, register) {
     assert(options.settingsPath, "option 'settingsPath' is required");
     SETTINGS_PATH = options.settingsPath;
 
-    imports.sandbox.getProjectDir(function(err, projectDir) {
-        FS = fsnode(imports.vfs, projectDir);
+    vfs = imports.vfs;
 
-        // If absolute settings path option is set we use that path and NodeJS's FS.
-        // This is needed by c9local where settings file cannot be stored at `/.settings`.
-        if (typeof options.absoluteSettingsPath !== "undefined") {
-            throw new Error('unsupported');
-/*            FS = require("fs");
-            if (typeof FS.exists !== "function") {
-                FS.exists = require("path").exists;
-            }
-            SETTINGS_PATH = options.absoluteSettingsPath;        */
-        }
+    if (typeof options.absoluteSettingsPath !== "undefined")
+        throw new Error('unsupported');
 
-        trimFilePrefix = options.trimFilePrefix;
-        imports.ide.register(name, SettingsPlugin, register);
-    });
+    trimFilePrefix = options.trimFilePrefix;
+    imports.ide.register(name, SettingsPlugin, register);
 };
 
 var SettingsPlugin = module.exports.SettingsPlugin = function(ide, workspace) {
     Plugin.call(this, ide, workspace);
     this.hooks = ["command"];
     this.name = name;
-    this.fs = FS;
     this.settingsPath = SETTINGS_PATH;
 };
 
@@ -82,10 +72,11 @@ util.inherits(SettingsPlugin, Plugin);
     this.loadSettings = function(user, callback) {
         // console.log("load settings", this.settingsPath);
         var self = this;
-        var fs = fsnode(this.fs.vfs, user.data.workspaceDir, user.data.webshellCsid);
-        fs.exists(this.settingsPath, function(exists) {
+        var fs = fsnode(vfs, '/' + user.data.username, user.data.webshellCsid);
+        var settingsPath = self.settingsPath + user.data.workspaceDir + '/.settings';
+        fs.exists(settingsPath, function(exists) {
             if (exists) {
-                fs.readFile(self.settingsPath, "utf8", function(err, settings) {
+                fs.readFile(settingsPath, "utf8", function(err, settings) {
                     if (err) {
                         callback(err);
                         return;
@@ -125,10 +116,11 @@ util.inherits(SettingsPlugin, Plugin);
 
     this.storeSettings = function(user, settings, callback) {
         var self = this;
-        var fs = fsnode(this.fs.vfs, user.data.workspaceDir, user.data.webshellCsid);
+        var fs = fsnode(vfs, '/' + user.data.username, user.data.webshellCsid);
         // console.log("store settings", this.settingsPath);
         // Atomic write (write to tmp file and rename) so we don't get corrupted reads if at same time.
-        var tmpPath = self.settingsPath + "~" + new Date().getTime() + "-" + ++this.counter;
+        var settingsPath = self.settingsPath + user.data.workspaceDir + '/.settings'
+        var tmpPath = settingsPath + "~" + new Date().getTime() + "-" + ++this.counter;
         
         // for local version, we need to rewrite the paths in settings to store as "/workspace"
         if (trimFilePrefix !== undefined) {
@@ -151,13 +143,28 @@ util.inherits(SettingsPlugin, Plugin);
                 }
             });
         }
-                
-        fs.writeFile(tmpPath, settings, "utf8", function(err) {
+
+        function trytowrite(callback) {
+            fs.writeFile(tmpPath, settings, "utf8", function(err) {
+                if (err) {
+                    callback(err);
+                    return;
+                }
+                fs.rename(tmpPath, settingsPath, callback);
+            });
+        }
+        trytowrite(function(err) {
             if (err) {
-                callback(err);
-                return;
+                fs.mkdirP(Path.dirname(tmpPath), function(err) {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                    trytowrite(callback);
+                });
             }
-            fs.rename(tmpPath, self.settingsPath, callback);
+            else
+                callback.apply(null, arguments);
         });
     };
 

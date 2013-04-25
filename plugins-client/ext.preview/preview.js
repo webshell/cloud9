@@ -98,6 +98,7 @@ module.exports = ext.register($name, {
 
         ide.addEventListener("dockpanel.loaded", function (e) {
             _self.hidePageHeader();
+            dock.hideSection(this.$name);
         });
 
         ext.initExtension(this);

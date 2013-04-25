@@ -4,6 +4,7 @@ var error = require("http-error");
 var IdeServer = require("./ide");
 var parseUrl = require("url").parse;
 var middleware = require("./middleware");
+var User = require("./user");
 
 module.exports = function setup(options, imports, register) {
 
@@ -45,6 +46,9 @@ module.exports = function setup(options, imports, register) {
                 callback(err);
                 return;
             }
+            // todo: user check for csid; anyway, fs will refuse access if user try to change its name.
+            if (data.username && data.username == data.workspaceDir.split('/')[1])
+                perm = User.OWNER_PERMISSIONS;
             ide.addUser(uid, perm, data);
             callback(null, ide.$users[uid]);
         });
@@ -95,7 +99,8 @@ module.exports = function setup(options, imports, register) {
 
             req.userData = {
                 webshellCsid: req.parsedUrl.query['webshellCsid'] || req.session.userData['webshellCsid'],
-                workspaceDir: req.parsedUrl.query['path'] || req.session.userData['workspaceDir']
+                workspaceDir: req.parsedUrl.query['path'] || req.session.userData['workspaceDir'],
+                username: req.parsedUrl.query['u'] || req.session.userData['username']
             };
             return next();
         });

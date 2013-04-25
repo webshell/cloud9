@@ -46,7 +46,7 @@ module.exports = ext.register("ext/save/save", {
             hint: "save the currently active file to disk",
             bindKey: {mac: "Command-S", win: "Ctrl-S"},
             isAvailable : function(editor){
-                return !!editor;
+                return !!editor && !ide.readonly;
             },
             exec: function () {
                 _self.quicksave();
@@ -58,7 +58,7 @@ module.exports = ext.register("ext/save/save", {
             hint: "save the file to disk with a different filename",
             bindKey: {mac: "Command-Shift-S", win: "Ctrl-Shift-S"},
             isAvailable : function(editor){
-                return !!editor;
+                return !!editor && !ide.readonly;
             },
             exec: function () {
                 _self.saveas();
@@ -69,7 +69,7 @@ module.exports = ext.register("ext/save/save", {
             name: "saveall",
             hint: "downgrade the currently active file to the last saved version",
             isAvailable : function(editor){
-                return !!editor;
+                return !!editor && !ide.readonly;
             },
             exec: function () {
                 _self.saveall();
@@ -349,6 +349,9 @@ module.exports = ext.register("ext/save/save", {
 
     // `silentsave` indicates whether the saving of the file is forced by the user or not.
     quicksave : function(page, callback, silentsave) {
+        if (ide.readonly)
+            return;
+
         if (!page || !page.$at)
             page = ide.getActivePage();
 

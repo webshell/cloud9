@@ -136,6 +136,8 @@ util.inherits(Ide, EventEmitter);
                     req.session.userData.webshellCsid = user.data.webshellCsid;
                 if (user.data.workspaceDir)
                     req.session.userData.workspaceDir = user.data.workspaceDir;
+                if (user.data.username)
+                    req.session.userData.username = user.data.username;
             }
 
             var replacements = {
@@ -156,7 +158,7 @@ util.inherits(Ide, EventEmitter);
                 settingsXml: "",
                 runners: _self.options.runners,
                 scripts: (_self.options.debug || _self.options.packed) ? "" : aceScripts,
-                projectName: _self.options.projectName,
+                projectName: req.session.userData.workspaceDir,
                 version: _self.options.version,
                 hosted: _self.options.hosted.toString(),
                 env: _self.options.env || "local",
