@@ -8,6 +8,7 @@ var jsDAV_Tree_Filesystem = require("./fs/tree").jsDAV_Tree_Filesystem;
 var BrowserPlugin = require("jsDAV/lib/DAV/plugins/browser");
 var DavFilewatch = require("./dav/filewatch");
 var DavPermission = require("./dav/permission");
+var User = require("../cloud9.core/user");
 
 module.exports = function setup(options, imports, register) {
 
@@ -62,6 +63,10 @@ module.exports = function setup(options, imports, register) {
                     pause.resume();
                     return;
                 }
+
+                // todo: user check for csid; anyway, fs will refuse access if user try to change its name.
+                if (req.userData.username && req.userData.username == req.userData.workspaceDir.split('/')[1])
+                    permissions = User.OWNER_PERMISSIONS;
 
                 davServer.permissions = permissions.fs;
                 davServer.exec(req, res);

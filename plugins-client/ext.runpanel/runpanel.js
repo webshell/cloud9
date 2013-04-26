@@ -373,8 +373,10 @@ module.exports = ext.register("ext/runpanel/runpanel", {
         this.configProps.forEach(function(prop) {
             cfg.attr(prop, props[prop] || "");
         });
-
+        console.log('appendxml cfg', cfg);
+        console.log('appendxml', cfg.node());
         var node = this.model.appendXml(cfg.node());
+        console.log('final node', node)
 
         // if this is the only config, make it active
         if (tagName == "config" && !hasConfigs)
@@ -389,15 +391,20 @@ module.exports = ext.register("ext/runpanel/runpanel", {
     },
 
     removeTempConfig: function() {
+        console.log('--1');
         var tempNodes = Settings.model.queryNodes("auto/configurations/tempconfig");
+        console.log('--2');
         if (tempNodes) {
             for (var i = tempNodes.length - 1; i >= 0; --i)
                 apf.xmldb.removeNode(tempNodes[i]);
         }
+        console.log('--3');
 
         var lastNode = Settings.model.queryNode("auto/configurations/config[@last='true']");
+        console.log('--4');
         if (lastNode)
             lstRunCfg.select(lastNode);
+        console.log('--5');
     },
 
     shouldRunInDebugMode: function(){
@@ -451,8 +458,12 @@ module.exports = ext.register("ext/runpanel/runpanel", {
     },
 
     runThisTab: function(page) {
+        console.log('page', page);
         if (!page || page.command)
             page = ide.getActivePage();
+        console.log('page after', page);
+        console.log('doc', page.$doc);
+        console.log('node', page.$doc.getNode());
         var node = this.addConfig(true, page.$doc.getNode());
 
         this.runConfig(node);
@@ -466,26 +477,30 @@ module.exports = ext.register("ext/runpanel/runpanel", {
         var saveallbeforerun = apf.isTrue(model.queryValue("general/@saveallbeforerun"));
         if (saveallbeforerun)
             Save.saveall();
-
+        console.log("0.05")
         if (mnuRunCfg.visible)
             mnuRunCfg.hide();
-
+        console.log("0.1", config, (new Error() ).stack);
         if (config.tagName == "tempconfig")
             this.removeTempConfig();
-
+        console.log("0.2")
         self["txtCmdArgs"] && txtCmdArgs.blur(); // fix the args cache issue #2763
         // dispatch here instead of in the implementation because the implementations
         // will vary over time
+        console.log("0.25")
         ide.dispatchEvent("beforeRunning");
-
+        console.log("0.5")
         Settings.save();
-
+        console.log("1")
         var _self = this;
         var args = {};
         try {
+            console.log("1.25")
             args = JSON.parse(_self.parseSubstitutions(config.getAttribute("args")) || "{}");
+            console.log("2")
         }
         catch (e) {
+            console.log("1.5")
             console.log(e.stack);
             util.alert("Error", "Could not parse JSON Arguments", 'Invalid JSON: "' + config.getAttribute("args") + '"', function() {
                 mnuRunCfg.show();
@@ -493,6 +508,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
             });
             return;
         }
+        console.log("path", config.getAttribute("path"), this.parseSubstitutions(config.getAttribute("path")))
         var path = this.parseSubstitutions(config.getAttribute("path"));
         if (!path)
             return;

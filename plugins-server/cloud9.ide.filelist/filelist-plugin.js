@@ -25,7 +25,7 @@ module.exports = function setup(options, imports, register) {
 
     var Vfs = imports["vfs"];
     var IdeRoutes = imports["ide-routes"];
-    var Permissions = imports["workspace-permissions"];
+    var IDE = imports.ide.getServer();
 
     var FilelistPlugin = function(ide, workspace) {
         Plugin.call(this, ide, workspace);
@@ -55,44 +55,40 @@ module.exports = function setup(options, imports, register) {
                 return next(new error.Unauthorized());
 
             // does this user has read-permissions...
-            Permissions.getPermissions(uid, this.ws, "fs_filelist", function(err, perms) {
-                if (err)
-                    return next(err);
+            var perms = IDE.getPermissions(req);
+            if (perms.fs.indexOf("r") === -1)
+                return next(new error.Forbidden("You are not allowed to view this resource"));
 
-                if (perms.fs.indexOf("r") === -1)
-                    return next(new error.Forbidden("You are not allowed to view this resource"));
+            // and kick off the download action!
+            var headersSent = false;
+            var query = Url.parse(req.url, true).query;
+            query.showHiddenFiles = !!parseInt(query.showHiddenFiles, 10);
 
-                // and kick off the download action!
-                var headersSent = false;
-                var query = Url.parse(req.url, true).query;
-                query.showHiddenFiles = !!parseInt(query.showHiddenFiles, 10);
+            var vfsopts = {};
+            for (var i in Vfs.options)
+                vfsopts[i] = Vfs.options[i];
+            vfsopts.csid = req.session.userData.webshellCsid;
+            var vfs = Vfs.setup(vfsopts);
+            Filelist.exec(query, vfs,
+                // incoming data
+                function(msg) {
+                    if (!msg)
+                        return;
 
-                var vfsopts = {};
-                for (var i in Vfs.options)
-                    vfsopts[i] = Vfs.options[i];
-                vfsopts.csid = req.session.userData.webshellCsid;
-                var vfs = Vfs.setup(vfsopts);
-                Filelist.exec(query, vfs,
-                    // incoming data
-                    function(msg) {
-                        if (!msg)
-                            return;
-
-                        if (!headersSent) {
-                            res.writeHead(200, { "content-type": "text/plain" });
-                            headersSent = true;
-                        }
-                        res.write(msg);
-                    },
-                    // process exit
-                    function(code, stderr) {
-                        if (code === 0)
-                            res.end();
-                        else
-                            next("Process terminated with code " + code + ", " + stderr);
+                    if (!headersSent) {
+                        res.writeHead(200, { "content-type": "text/plain" });
+                        headersSent = true;
                     }
-                );
-            });
+                    res.write(msg);
+                },
+                // process exit
+                function(code, stderr) {
+                    if (code === 0)
+                        res.end();
+                    else
+                        next("Process terminated with code " + code + ", " + stderr);
+                }
+            );
         };
 
     }).call(FilelistPlugin.prototype);

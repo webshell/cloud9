@@ -158,7 +158,7 @@ util.inherits(Ide, EventEmitter);
                 settingsXml: "",
                 runners: _self.options.runners,
                 scripts: (_self.options.debug || _self.options.packed) ? "" : aceScripts,
-                projectName: req.session.userData.workspaceDir,
+                projectName: _self.options.projectName,//req.session.userData.workspaceDir,
                 version: _self.options.version,
                 hosted: _self.options.hosted.toString(),
                 env: _self.options.env || "local",
@@ -189,6 +189,11 @@ util.inherits(Ide, EventEmitter);
 
     this.addUser = function(username, permissions, userData) {
         var user = this.$users[username];
+
+        // todo: user check for csid; anyway, fs will refuse access if user try to change its name.
+        if (userData.username && userData.username == userData.workspaceDir.split('/')[1])
+            permissions = User.OWNER_PERMISSIONS;
+
         if (user) {
             user.setPermissions(permissions);
             if (userData)
@@ -249,6 +254,12 @@ util.inherits(Ide, EventEmitter);
             return User.VISITOR_PERMISSIONS;
         else
             return user.getPermissions() || User.VISITOR_PERMISSIONS;
+    };
+
+    this.getPermissionsByUid = function(uid) {
+        if (!this.$users[uid])
+            return User.VISITOR_PERMISSIONS;
+        return this.$users[uid].getPermissions() || User.VISITOR_PERMISSIONS;
     };
 
     this.hasUser = function(username) {

@@ -216,7 +216,7 @@ module.exports = ext.register("ext/code/code", {
             if (dotI)
                 ext = fileName.substr(dotI).toLowerCase()
             else
-                ext = defmode || "js";
+                ext = "*" + fileName;// defmode || "js";
             mode = fileExtensions[ext];
         }
 
@@ -874,7 +874,7 @@ module.exports = ext.register("ext/code/code", {
                 var syntax = _self.getSyntax(doc.getNode(), doc);
                 // This event is triggered also when closing files, so session may be gone already.
                 if(doc.acesession) {
-                    _self.refreshSyntax();
+                    //_self.refreshSyntax();
                     doc.acesession.setMode(_self.amlEditor.getMode(syntax));
                     doc.acesession.syntax = syntax;
                 }
@@ -1000,7 +1000,7 @@ module.exports = ext.register("ext/code/code", {
                         bgMessage.parentNode.removeChild(bgMessage);
                 }, 100);
             }
-            _self.refreshSyntax();
+            //_self.refreshSyntax();
         };
 
         ide.addEventListener("openfile", function(){

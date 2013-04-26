@@ -4,7 +4,6 @@ var error = require("http-error");
 var IdeServer = require("./ide");
 var parseUrl = require("url").parse;
 var middleware = require("./middleware");
-var User = require("./user");
 
 module.exports = function setup(options, imports, register) {
 
@@ -46,9 +45,7 @@ module.exports = function setup(options, imports, register) {
                 callback(err);
                 return;
             }
-            // todo: user check for csid; anyway, fs will refuse access if user try to change its name.
-            if (data.username && data.username == data.workspaceDir.split('/')[1])
-                perm = User.OWNER_PERMISSIONS;
+
             ide.addUser(uid, perm, data);
             callback(null, ide.$users[uid]);
         });
