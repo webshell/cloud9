@@ -158,7 +158,7 @@ util.inherits(Ide, EventEmitter);
                 settingsXml: "",
                 runners: _self.options.runners,
                 scripts: (_self.options.debug || _self.options.packed) ? "" : aceScripts,
-                projectName: _self.options.projectName,//req.session.userData.workspaceDir,
+                projectName: req.session.userData.workspaceDir,
                 version: _self.options.version,
                 hosted: _self.options.hosted.toString(),
                 env: _self.options.env || "local",

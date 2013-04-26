@@ -173,6 +173,11 @@ module.exports = ext.register("ext/runpanel/runpanel", {
                 ["saveallbeforerun", "true"]
             ]);
 
+            Settings.setDefaults("auto/configurations", [
+                ["autohide", "true"],
+                ["showruncfglist", "false"]
+            ]);
+
             var changed = false;
             var runConfigs = e.model.queryNode("auto/configurations");
             var activeCfg = e.model.queryNode("auto/configurations/config[@active='true']");
