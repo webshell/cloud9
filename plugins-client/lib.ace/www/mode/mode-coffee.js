@@ -42,7 +42,7 @@ var oop = require("../lib/oop");
 
 function Mode() {
     this.$tokenizer = new Tokenizer(new Rules().getRules());
-    this.$outdent   = new Outdent();
+    this.$outdent = new Outdent();
     this.foldingRules = new FoldMode();
 }
 
@@ -133,11 +133,11 @@ define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 'ace
             "this|throw|then|try|typeof|super|switch|return|break|by|continue|" +
             "catch|class|in|instanceof|is|isnt|if|else|extends|for|forown|" +
             "finally|function|while|when|new|no|not|delete|debugger|do|loop|of|off|" +
-            "or|on|unless|until|and|yes"
+            "or|on|unless|until|and|yes|apis|fs"
         );
 
         var langConstant = (
-            "true|false|null|undefined|NaN|Infinity"
+            "true|false|null|undefined|NaN|Infinity|args"
         );
 
         var illegal = (
@@ -160,7 +160,12 @@ define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 'ace
         );
 
         var variableLanguage = (
-            "window|arguments|prototype|document"
+            "window|arguments|prototype|document|" +
+            "base64|buffer|check|delete|doc|dump|echo|find|fromXml|get|hash|"  + // Webshell
+            "here|http|infos|jsClientApi|js|md5|patch|post|process|put|querystring|"   +
+            "render|require|ret|run|sha1|toXml|write|auth|cat|cp|exists|folderDialog|" +
+            "getToken|isAuth|isFile|jsdoc|logout|ls|mashape|mkdir|mv|rm|stat|swagger|" +
+            "touch|wadl|welcome"
         );
 
         var keywordMapper = this.createKeywordMapper({

@@ -194,9 +194,14 @@ var JavaScriptHighlightRules = function() {
             "decodeURI|decodeURIComponent|encodeURI|encodeURIComponent|eval|isFinite|" + // Non-constructor functions
             "isNaN|parseFloat|parseInt|"                                               +
             "JSON|Math|"                                                               + // Other
+            "base64|buffer|check|delete|doc|dump|echo|find|fromXml|get|hash|"          + // Webshell
+            "here|http|infos|jsClientApi|js|md5|patch|post|process|put|querystring|"   +
+            "render|require|ret|run|sha1|toXml|write|auth|cat|cp|exists|folderDialog|" +
+            "getToken|isAuth|isFile|jsdoc|logout|ls|mashape|mkdir|mv|rm|stat|swagger|" +
+            "touch|wadl|welcome|"                                                      +
             "this|arguments|prototype|window|document"                                 , // Pseudo
         "keyword":
-            "const|yield|import|get|set|" +
+            "const|yield|import|get|set|apis|fs|" +
             "break|case|catch|continue|default|delete|do|else|finally|for|function|" +
             "if|in|instanceof|new|return|switch|throw|try|typeof|let|var|while|with|debugger|" +
             "__parent__|__count__|escape|unescape|with|__proto__|" +
@@ -204,7 +209,7 @@ var JavaScriptHighlightRules = function() {
         "storage.type":
             "const|let|var|function",
         "constant.language":
-            "null|Infinity|NaN|undefined",
+            "null|Infinity|NaN|undefined|args",
         "support.function":
             "alert"
     }, "identifier");
