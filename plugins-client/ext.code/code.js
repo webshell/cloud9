@@ -1001,6 +1001,7 @@ module.exports = ext.register("ext/code/code", {
                 }, 100);
             }
             _self.refreshSyntax();
+            _self.amlEditor.$editor.setReadOnly(!!ide.readonly);
         };
 
         ide.addEventListener("openfile", function(){
