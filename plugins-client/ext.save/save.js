@@ -370,6 +370,9 @@ module.exports = ext.register("ext/save/save", {
         var node = doc.getNode();
         var path = node.getAttribute("path");
 
+        if (node.getAttribute("changed") != 1)
+            return; // up to date
+
         if (node.getAttribute("debug"))
             return;
 

@@ -423,8 +423,6 @@ module.exports = ext.register("ext/runpanel/runpanel", {
             this.addConfig(true);
             return;
         }
-        else if (node.tagName == "tempconfig")
-            node = this.addConfig();
 
         this.runConfig(node);
 
