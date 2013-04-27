@@ -24,7 +24,7 @@ var markup = require("text!ext/runpanel/runpanel.xml");
 var skin = require("text!ext/runpanel/skin.xml");
 var cssString = require("text!ext/runpanel/style.css");
 
-/*global stProcessRunning, barTools, mnuContextTabs, btnRun, tabEditors, mnuCtxEditor,
+/*global barTools, mnuContextTabs, btnRun, tabEditors, mnuCtxEditor,
 mnuCtxEditorRevisions, lstRunCfg, tabDebug, tabDebugButtons,
 btnRunDbgRun, mnuRunCfg, txtCmdArgs, trFiles, ddRunnerSelector*/
 
@@ -77,22 +77,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
             },
             bindKey: {mac: "F5", win: "F5"},
             exec: function () {
-                if (stProcessRunning.active)
-                    _self.stop();
-                else
-                    _self.run();
-            }
-        });
-
-        Commands.addCommand({
-            name: "stop",
-            "hint": "stop a running node program on the server",
-            "commands": {
-                "[PATH]": {"hint": "path pointing to an executable. Autocomplete with [TAB]"}
-            },
-            bindKey: {mac: "Shift-F5", win: "Shift-F5"},
-            exec: function () {
-                _self.stop();
+                _self.run();
             }
         });
 
@@ -126,13 +111,13 @@ module.exports = ext.register("ext/runpanel/runpanel", {
             id              : "btnRun",
             skin            : "run-splitbutton",
             checked         : "false",
-            icon            : "{stProcessRunning.active and 1 ? 'stop.png' : apf.isTrue(this.checked) ? 'bug.png' : 'run.png'}",
-            caption         : "{stProcessRunning.active and 1 ? 'Stop' : 'Run'}",
+            icon            : "run.png",
+            caption         : "Run",
             command         : "run",
             visible         : "true",
             disabled        : "{!!!ide.onLine}",
-            "class"         : "{stProcessRunning.active and 1 ? 'running' : 'stopped'}",
-            "disabled-split": "{stProcessRunning.active and 1}",
+            "class"         : "stopped",
+            "disabled-split": "false",
             submenu         : "mnuRunCfg"
         }), 100),
 
@@ -141,7 +126,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
 
             Menus.addItemByPath("View/Tabs/Run This File", new apf.item({
                 command : "runactivetab",
-                disabled : "{!!!tabEditors.activepage or !!stProcessRunning.active}"
+                disabled : "{!tabEditors.activepage}"
             }), 400),
             Menus.addItemByPath("View/Tabs/~", new apf.divider(), 300)
         );
@@ -151,7 +136,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
                 Menus.addItemByPath("~", new apf.divider(), 800, mnuContextTabs),
                 Menus.addItemByPath("Run This File", new apf.item({
                     command : "runthistab",
-                    disabled : "{!!!tabEditors.activepage or !!stProcessRunning.active}"
+                    disabled : "{!tabEditors.activepage}"
                 }), 850, mnuContextTabs)
             );
         });
@@ -222,7 +207,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
                         id : "mnuCtxEditorRunThisFile",
                         caption : "Run This File",
                         command: "runthistab",
-                        disabled : "{!!!tabEditors.activepage or !!stProcessRunning.active}"
+                        disabled : "{!tabEditors.activepage}"
                     }), beforeNode),
                     mnuCtxEditor.insertBefore(new apf.divider(), beforeNode)
                 );
@@ -378,10 +363,8 @@ module.exports = ext.register("ext/runpanel/runpanel", {
         this.configProps.forEach(function(prop) {
             cfg.attr(prop, props[prop] || "");
         });
-        console.log('appendxml cfg', cfg);
-        console.log('appendxml', cfg.node());
+
         var node = this.model.appendXml(cfg.node());
-        console.log('final node', node)
 
         // if this is the only config, make it active
         if (tagName == "config" && !hasConfigs)
@@ -396,20 +379,15 @@ module.exports = ext.register("ext/runpanel/runpanel", {
     },
 
     removeTempConfig: function() {
-        console.log('--1');
         var tempNodes = Settings.model.queryNodes("auto/configurations/tempconfig");
-        console.log('--2');
         if (tempNodes) {
             for (var i = tempNodes.length - 1; i >= 0; --i)
                 apf.xmldb.removeNode(tempNodes[i]);
         }
-        console.log('--3');
 
         var lastNode = Settings.model.queryNode("auto/configurations/config[@last='true']");
-        console.log('--4');
         if (lastNode)
             lstRunCfg.select(lastNode);
-        console.log('--5');
     },
 
     shouldRunInDebugMode: function(){
@@ -463,12 +441,9 @@ module.exports = ext.register("ext/runpanel/runpanel", {
     },
 
     runThisTab: function(page) {
-        console.log('page', page);
         if (!page || page.command)
             page = ide.getActivePage();
-        console.log('page after', page);
-        console.log('doc', page.$doc);
-        console.log('node', page.$doc.getNode());
+
         var node = this.addConfig(true, page.$doc.getNode());
 
         this.runConfig(node);
@@ -482,38 +457,34 @@ module.exports = ext.register("ext/runpanel/runpanel", {
         var saveallbeforerun = apf.isTrue(model.queryValue("general/@saveallbeforerun"));
         if (saveallbeforerun)
             Save.saveall();
-        console.log("0.05")
+
         if (mnuRunCfg.visible)
             mnuRunCfg.hide();
-        console.log("0.1", config, (new Error() ).stack);
+
         if (config.tagName == "tempconfig")
             this.removeTempConfig();
-        console.log("0.2")
+
         self["txtCmdArgs"] && txtCmdArgs.blur(); // fix the args cache issue #2763
+        
         // dispatch here instead of in the implementation because the implementations
         // will vary over time
-        console.log("0.25")
         ide.dispatchEvent("beforeRunning");
-        console.log("0.5")
+
         Settings.save();
-        console.log("1")
+
         var _self = this;
         var args = {};
         try {
-            console.log("1.25")
             args = JSON.parse(_self.parseSubstitutions(config.getAttribute("args")) || "{}");
-            console.log("2")
         }
         catch (e) {
-            console.log("1.5")
-            console.log(e.stack);
             util.alert("Error", "Could not parse JSON Arguments", 'Invalid JSON: "' + config.getAttribute("args") + '"', function() {
                 mnuRunCfg.show();
                 txtCmdArgs.$focus();
             });
             return;
         }
-        console.log("path", config.getAttribute("path"), this.parseSubstitutions(config.getAttribute("path")))
+
         var path = this.parseSubstitutions(config.getAttribute("path"));
         if (!path)
             return;
@@ -521,7 +492,7 @@ module.exports = ext.register("ext/runpanel/runpanel", {
         Noderunner.run(
             path,
             args,
-            true,
+            false,
             config.getAttribute("value")
         );
     },

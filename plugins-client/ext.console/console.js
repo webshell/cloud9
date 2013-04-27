@@ -764,20 +764,6 @@ module.exports = ext.register("ext/console/console", {
             else if (apf.isTrue(showInput))
                 _self.showInput(null, true);
         });
-
-        stProcessRunning.addEventListener("activate", function() {
-            var autoshow = settings.model.queryValue("auto/console/@autoshow");
-            if (_self.autoOpen && apf.isTrue(autoshow)) {
-                setTimeout(function(){
-                    _self.show();
-                    _self.showOutput();
-                }, 200);
-            }
-            else {
-                if (self.tabConsole && tabConsole.visible)
-                    _self.showOutput();
-            }
-        });
     },
 
     init: function(){
