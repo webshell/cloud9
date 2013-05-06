@@ -27,7 +27,7 @@
         "async": "0.1.21",
         "netutil": "0.0.1",
         "architect": "0.1.4",
-        "connect-architect": "0.0.6",
+        "connect-architect": "git://github.com/webshell/connect-architect.git",
 
         "smith": "0.1.9",
         "smith.io": "0.0.36",
